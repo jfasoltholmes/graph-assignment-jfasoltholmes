@@ -1,0 +1,7 @@
+https://docs.python.org/3/library/typing.html
+https://docs.python.org/3/library/csv.html
+https://pypi.org/project/haversine/
+https://stackoverflow.com/questions/36903641/dijkstras-algorithm-with-shortest-path
+https://www.youtube.com/watch?v=EFg3u_E6eHU
+https://www.youtube.com/watch?v=dv1m3L6QXWs
+https://www.youtube.com/watch?v=YMyO-yZMQ6g

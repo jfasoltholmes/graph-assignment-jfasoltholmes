@@ -1,8 +1,7 @@
-from graph_interfaces import IEdge, IGraph, IVertex
-from typing import List, Optional, Dict
+from src.graph_interfaces import IEdge, IGraph, IVertex
+from typing import List, Optional, Tuple
 
 # Implementation definitions
-# You should implement the bodies of the methods required by the interface protocols.
 
 class Graph(IGraph):
     def __init__(self) -> None:
@@ -26,6 +25,12 @@ class Graph(IGraph):
         self._vertices = [v for v in self._vertices if v.get_name() != vertex_name]
         self._edges = [e for e in self._edges if e.get_destination().get_name() != vertex_name]
 
+    def get_vertex(self, vertex_name: str) -> Optional[IVertex]:
+        for vertex in self._vertices:
+            if vertex.get_name() == vertex_name:
+                return vertex
+        return None
+
     def add_edge(self, edge: IEdge) -> None:
         # Ensure no duplicate edge names
         if any(e.get_name() == edge.get_name() for e in self._edges):
@@ -45,10 +50,12 @@ class Graph(IGraph):
             vertex.remove_edge(edge_name)
 
 class Vertex(IVertex):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, latitude: float, longitude: float) -> None:
         self._name: str = name
         self._edges: List[IEdge] = []
         self._visited: bool = False
+        self._latitude: float = latitude
+        self._longitude: float = longitude
 
     def get_name(self) -> str:
         return self._name
@@ -72,9 +79,17 @@ class Vertex(IVertex):
     def is_visited(self) -> bool:
         return self._visited
 
+    def set_coordinates(self, latitude: float, longitude: float) -> None:
+        self._latitude = latitude
+        self._longitude = longitude
+
+    def get_coordinates(self) -> Tuple[float, float]:
+        return (self._latitude, self._longitude)
+
 class Edge(IEdge):
-    def __init__(self, name: str, destination: IVertex, weight: Optional[float] = None) -> None:
+    def __init__(self, name: str, src: IVertex, destination: IVertex, weight: Optional[float] = None) -> None:
         self._name: str = name
+        self._src: IVertex = src
         self._destination: IVertex = destination
         self._weight: Optional[float] = weight
     

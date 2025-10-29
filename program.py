@@ -1,90 +1,85 @@
 from typing import Optional
-from graph_interfaces import IGraph, IVertex
-from graph_impl import Graph, Vertex, Edge
-from collections import deque
-import csv
-
-def read_graph(file_path: str) -> IGraph:  
-    """Read the graph from the file and return the graph object"""
-    # Create the empty graph
-    graph = Graph()
-    # Read the file and populate the graph
-    with open(file_path, "r") as file:
-        reader = csv.reader(file)
-        # Skip the header row
-        next(reader)
-        for row in reader:
-            source_name, dest_name, highway_name, distance_str = row
-            # Convert distance to integer
-            distance = int(distance_str)
-
-            # Create or get the source/destination vertex
-            source_vertex = next((v for v in graph.get_vertices() if v.get_name() == source_name), None)
-            if source_vertex is None:
-                source_vertex = Vertex(source_name)
-                graph.add_vertex(source_vertex)
-
-            destination_vertex = next((v for v in graph.get_vertices() if v.get_name() == dest_name), None)
-            if destination_vertex is None:
-                destination_vertex = Vertex(dest_name)
-                graph.add_vertex(destination_vertex)
-
-            # Add the edge to the graph
-            edge_name = f"{source_name}-{dest_name}-{highway_name}"
-            edge = Edge(edge_name, destination_vertex, distance)
-            graph.add_edge(edge)
-            
-    return graph
-
-def print_dfs(graph: IGraph, start_vertex: IVertex) -> None: 
-    """Print the DFS traversal of the graph starting from the start vertex"""
-    def dfs(vertex: IVertex) -> None:
-        # Mark the vertex as visited
-        vertex.set_visited(True)
-        print(vertex.get_name())
-        # Recur for all the adjacent vertices
-        for edge in vertex.get_edges():
-            neighbor = edge.get_destination()
-            if not neighbor.is_visited():
-                dfs(neighbor)
-
-    dfs(start_vertex)
-
-def print_bfs(graph: IGraph, start_vertex: IVertex) -> None: 
-    """Print the BFS traversal of the graph starting from the start vertex"""
-    queue = deque([start_vertex])
-    start_vertex.set_visited(True)
-
-    while queue:
-        vertex = queue.popleft()
-        print(vertex.get_name())
-        for edge in vertex.get_edges():
-            neighbor = edge.get_destination()
-            if not neighbor.is_visited():
-                neighbor.set_visited(True)
-                queue.append(neighbor) 
-
+from src.graph_interfaces import IGraph
+from src.graph_utils import a_star, gbfs, read_graph, dijkstra
+import time
 
 def main() -> None:
-    graph: IGraph = read_graph("graph.txt")
-    start_vertex_name: str  = input("Enter the start vertex name: ")
+    graph: IGraph = read_graph("graph_v2.txt")
 
-    # Find the start vertex object
-    start_vertex: Optional[IVertex]= next((v for v in graph.get_vertices() if v.get_name() == start_vertex_name), None)
+    # While loop to allow user to enter a different vertex
+    while True:
+        start_vertex_name: str  = input("Enter the start vertex name: ")
+        # Find the start vertex object
+        start_vertex = graph.get_vertex(start_vertex_name)
+        if start_vertex is None:
+            print("\nStart vertex not found, please examine vertices in graph_v2.txt and try again.")
+            continue
 
-    if start_vertex is None:
-        print("Start vertex not found")
-        return
-    
-    print("\nDepth-First Search order:")
-    print_dfs(graph, start_vertex)
+        end_vertex_name: str  = input("Enter the end vertex name: ")
+        # Find the end vertex object
+        end_vertex = graph.get_vertex(end_vertex_name)
+        if end_vertex is None:
+            print("\nEnd vertex not found, please examine vertices in graph_v2.txt and try again.")
+            continue
 
-    # Reset vertices
-    for vertex in graph.get_vertices():
-        vertex.set_visited(False)
+        # Menu for algorithm selection
+        print("\n\nChoose your algorithm: ")
+        print("1. Dijkstra's Algorithm")
+        print("2. Greedy Best-First Search")
+        print("3. A* Search Algorithm")
+        choice = input("Enter the number of your choice: ").strip()
 
-    print("\nBreadth-First Search order:")
-    print_bfs(graph, start_vertex)
+        if choice == '1':
+            print("\nRunning Dijkstra's Algorithm...")
+            start_time = time.perf_counter()
+            distance, path, vertices_explored, edges_evaluated = dijkstra(graph, start_vertex, end_vertex)
+            end_time = time.perf_counter()
+
+            # Print the results
+            print(f"Path: {' -> '.join(path)}")
+            print(f"Total Distance: {distance}")
+            print(f"Vertices Explored: {vertices_explored}")
+            print(f"Edges Evaluated: {edges_evaluated}")
+            print(f"Time taken: {end_time - start_time:.6f} seconds")
+
+        elif choice == '2':
+            print("\nRunning Greedy Best-First Search...")
+            start_time = time.perf_counter()
+            distance, path, vertices_explored, edges_evaluated = gbfs(graph, start_vertex, end_vertex)
+            end_time = time.perf_counter()
+
+            # Print the results
+            print(f"Path: {' -> '.join(path)}")
+            print(f"Total Distance: {distance}")
+            print(f"Vertices Explored: {vertices_explored}")
+            print(f"Edges Evaluated: {edges_evaluated}")
+            print(f"Time taken: {end_time - start_time:.6f} seconds")
+            
+        elif choice == '3':
+            print("\nRunning A* Search Algorithm...")
+            start_time = time.perf_counter()
+            distance, path, vertices_explored, edges_evaluated = a_star(graph, start_vertex, end_vertex)
+            end_time = time.perf_counter()
+
+            # Print the results
+            print(f"Path: {' -> '.join(path)}")
+            print(f"Total Distance: {distance}")
+            print(f"Vertices Explored: {vertices_explored}")
+            print(f"Edges Evaluated: {edges_evaluated}")
+            print(f"Time taken: {end_time - start_time:.6f} seconds")
+        else:
+            print("\nInvalid choice. Please select a valid algorithm number.")
+            continue
+
+        # Reset vertices
+        for vertex in graph.get_vertices():
+            vertex.set_visited(False)
+
+        # Prompt to continue or exit
+        cont = input("\nDo you want to search another route? (y/n): ").strip().lower()
+        if cont != 'y':
+            print("\nThank you for using the Oregon Pathfinder!\nGoodbye!\n\n")
+            break
 
 
 if __name__ == "__main__":

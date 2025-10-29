@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import List, Protocol
 
 # Interface definitions
-# You should not modify these
 
 class IEdge(Protocol):
     def get_name(self) -> str: ...
